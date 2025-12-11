@@ -24,7 +24,7 @@
     </div>
     <div>
       <label>Wiek:<br />
-        <input type="number" name="age" min="0" value="<%= typeof v.age !== 'undefined' && v.age !== null ? v.age : '' %>" />
+        <input type="number" name="age" min="0" required value="<%= typeof v.age !== 'undefined' && v.age !== null ? v.age : '' %>" />
       </label>
       <% if (errs && errs.age) { %>
         <div class="error"><%= errs.age %></div>

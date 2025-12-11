@@ -40,14 +40,23 @@ async function newForm(req, res) {
 async function create(req, res) {
     try {
         const { name, age, breed, description, status, password } = req.body;
+        const allowedBreeds = ['jamnik krotkowlosy', 'jamnik dlugowlosy'];
+        const allowedStatus = ['dostępny', 'adoptowany'];
         const errors = {};
         // Validation: required fields
         if (!name || !name.trim()) errors.name = 'Nazwa nie może być pusta';
-        if (!breed || !breed.trim()) errors.breed = 'Rasa nie może być pusta';
+        if (!breed || !breed.trim()) {
+            errors.breed = 'Rasa nie może być pusta';
+        } else if (!allowedBreeds.includes(breed.trim())) {
+            errors.breed = 'Nieprawidłowa rasa';
+        }
         if (!status || !status.trim()) errors.status = 'Status nie może być pusty';
-        // age if provided must be a non-negative integer
+        else if (!allowedStatus.includes(status.trim())) errors.status = 'Nieprawidłowy status';
+        // age must be provided and be a non-negative integer
         let numericAge;
-        if (age !== undefined && age !== '') {
+        if (age === undefined || age === '') {
+            errors.age = 'Wiek musi być podany';
+        } else {
             numericAge = Number(age);
             if (Number.isNaN(numericAge) || numericAge < 0) errors.age = 'Wiek musi być liczbą nieujemną';
         }
@@ -59,7 +68,7 @@ async function create(req, res) {
             return res.status(400).render('dachshund/new', { values: req.body, errors });
         }
 
-        const dachshund = { name: name.trim(), age: numericAge, breed: breed.trim(), description, status };
+        const dachshund = { name: name.trim(), age: numericAge, breed: breed.trim(), description, status: status && status.trim() };
         if (password) {
             const hash = crypto.createHash('sha256').update(password).digest('hex');
             dachshund.passwordHash = hash;
@@ -100,6 +109,8 @@ async function editForm(req, res) {
 async function update(req, res) {
     try {
         const { name, age, breed, description, status } = req.body;
+        const allowedBreeds = ['jamnik krotkowlosy', 'jamnik dlugowlosy'];
+        const allowedStatus = ['dostępny', 'adoptowany'];
         // Fetch existing doc to verify password if set
         const existing = await dachshundModel.getDachshundById(req.params.id);
         if (!existing) return res.status(404).send('Nie znaleziono jamnika');
@@ -107,11 +118,18 @@ async function update(req, res) {
         const errors = {};
         // Validate required fields
         if (!name || !name.trim()) errors.name = 'Nazwa nie może być pusta';
-        if (!breed || !breed.trim()) errors.breed = 'Rasa nie może być pusta';
+        if (!breed || !breed.trim()) {
+            errors.breed = 'Rasa nie może być pusta';
+        } else if (!allowedBreeds.includes(breed.trim())) {
+            errors.breed = 'Nieprawidłowa rasa';
+        }
         if (!status || !status.trim()) errors.status = 'Status nie może być pusty';
-        // age validation
+        else if (!allowedStatus.includes(status.trim())) errors.status = 'Nieprawidłowy status';
+        // age must be provided and be a non-negative integer
         let numericAge;
-        if (age !== undefined && age !== '') {
+        if (age === undefined || age === '') {
+            errors.age = 'Wiek musi być podany';
+        } else {
             numericAge = Number(age);
             if (Number.isNaN(numericAge) || numericAge < 0) errors.age = 'Wiek musi być liczbą nieujemną';
         }
